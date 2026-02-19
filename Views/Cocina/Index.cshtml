@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Monitor de Cocina";
+}
+<style>
+    body { background-color: #1a1a1a; color: #eee; }
+    .card-pedido { background: #2d2d2d; border-left: 10px solid var(--terracota); margin-bottom: 15px; }
+    .badge-tiempo { background-color: var(--verde-oliva); color: white; }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 style="color: var(--crema)">👨‍🍳 Monitor de Pedidos</h1>
+        <span class="badge p-2" style="background: var(--cafe)">Usuario: @Context.Session.GetString("Nombre")</span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card card-pedido shadow">
+                <div class="card-body">
+                    <h5 class="card-title d-flex justify-content-between">
+                        Orden #105 <span class="badge badge-tiempo">Hace 5 min</span>
+                    </h5>
+                    <ul class="list-unstyled">
+                        <li><strong>2x</strong> Chilaquiles Verdes</li>
+                        <li><strong>1x</strong> Café Americano</li>
+                    </ul>
+                    <hr style="border-color: #444">
+                    <button class="btn btn-success w-100">Marcar como Listo ✅</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

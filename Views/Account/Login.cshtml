@@ -1,0 +1,99 @@
+@model Cafeteria.Models.ViewModels.LoginVM
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Cafetería</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        body {
+            background-color: var(--crema);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            border: none;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-header {
+            background-color: var(--cafe);
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+        }
+        .login-header i {
+            font-size: 4rem;
+            color: var(--crema);
+            margin-bottom: 15px;
+        }
+        .btn-login {
+            background-color: var(--terracota);
+            color: white;
+            border-radius: 50px;
+            padding: 12px;
+            font-weight: bold;
+            transition: 0.3s;
+            border: none;
+        }
+        .btn-login:hover {
+            background-color: #c65d48;
+            transform: translateY(-2px);
+            color: white;
+        }
+        .form-control {
+            border-radius: 50px;
+            padding-left: 20px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container p-3">
+        <div class="login-card mx-auto">
+            <div class="login-header">
+                <i class="fas fa-mug-hot"></i>
+                <h2 class="fw-bold">Cafetería</h2>
+                <p class="mb-0 opacity-75">Panel de Control</p>
+            </div>
+            <div class="card-body p-4 p-md-5 bg-white">
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger small rounded-pill text-center">
+                        <i class="fas fa-exclamation-circle me-2"></i> @ViewBag.Error
+                    </div>
+                }
+                <form asp-action="Login" method="post">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Usuario</label>
+                        <div class="input-group">
+                            <input asp-for="Usuario" class="form-control" placeholder="Introduce tu usuario" required />
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Contraseña</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" required />
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-login shadow-sm">
+                            <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

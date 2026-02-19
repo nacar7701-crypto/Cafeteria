@@ -1,0 +1,71 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Cafetería</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        .menu-card {
+            transition: transform 0.2s;
+            cursor: pointer;
+            border: none;
+            border-radius: 20px;
+            background-color: white;
+        }
+        .menu-card:hover { transform: scale(1.05); }
+        .icon-box {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--terracota);
+        }
+    </style>
+</head>
+<body style="background-color: var(--crema);">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h1 style="color: var(--cafe); font-weight: bold;">☕ Menú Principal</h1>
+            <p class="text-muted">Bienvenido, @Context.Session.GetString("Nombre")</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-12 col-sm-6 col-lg-3">
+                <a asp-controller="Insumos" asp-action="Index" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm menu-card p-4 text-center">
+                        <div class="icon-box"><i class="fas fa-boxes-stacked"></i></div>
+                        <h5 style="color: var(--cafe)">Inventario</h5>
+                        <p class="small text-muted">Gestión de insumos y stock</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card h-100 shadow-sm menu-card p-4 text-center">
+                    <div class="icon-box"><i class="fas fa-user-graduate"></i></div>
+                    <h5 style="color: var(--cafe)">Alumnos</h5>
+                    <p class="small text-muted">Saldos y registros</p>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card h-100 shadow-sm menu-card p-4 text-center">
+                    <div class="icon-box"><i class="fas fa-chart-line"></i></div>
+                    <h5 style="color: var(--cafe)">Reportes</h5>
+                    <p class="small text-muted">Ventas y estadísticas</p>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card h-100 shadow-sm menu-card p-4 text-center">
+                    <div class="icon-box"><i class="fas fa-cog"></i></div>
+                    <h5 style="color: var(--cafe)">Configuración</h5>
+                    <p class="small text-muted">Ajustes del sistema</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <a asp-controller="Account" asp-action="Logout" class="btn btn-outline-danger px-4 rounded-pill">Cerrar Sesión</a>
+        </div>
+    </div>
+</body>
+</html>

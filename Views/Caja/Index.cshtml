@@ -1,0 +1,12 @@
+@{
+    ViewData["Title"] = "Panel de Caja";
+}
+<div class="container mt-5">
+    <div class="card border-0 shadow-sm" style="border-left: 5px solid var(--verde-oliva) !important;">
+        <div class="card-body">
+            <h1 style="color: var(--cafe)">Bienvenido a la Caja</h1>
+            <p>Hola, <strong>@Context.Session.GetString("Nombre")</strong>. Estás listo para vender.</p>
+            <a href="@Url.Action("Logout", "Account")" class="btn btn-sm btn-outline-danger">Cerrar Sesión</a>
+        </div>
+    </div>
+</div>

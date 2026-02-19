@@ -1,0 +1,76 @@
+@model Cafeteria.Models.Entities.Insumo
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Insumo - Cafetería</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body style="background-color: var(--crema);">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card shadow border-0" style="border-radius: 20px;">
+                    <div class="card-header text-white text-center py-3" style="background-color: var(--cafe); border-radius: 20px 20px 0 0;">
+                        <h4 class="mb-0"><i class="fas fa-edit me-2"></i> Editar Insumo</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form asp-action="Editar" method="post">
+                            <input type="hidden" asp-for="InsumoId" />
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: var(--cafe)">Nombre del Insumo</label>
+                                <input asp-for="Nombre" class="form-control" required />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="form-label fw-bold">Stock Actual</label>
+                                    <input asp-for="StockActual" type="number" step="0.01" class="form-control" required />
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label fw-bold">U. Medida</label>
+                                    <select asp-for="UnidadMedida" class="form-select">
+                                        <option value="Gramos">Gramos (g)</option>
+                                        <option value="Mililitros">Mililitros (ml)</option>
+                                        <option value="Piezas">Piezas (pza)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="form-label fw-bold">Costo Unit.</label>
+                                    <input asp-for="PrecioCompra" type="number" step="0.01" class="form-control" required />
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label fw-bold">Stock Mínimo</label>
+                                    <input asp-for="StockMinimo" type="number" step="0.01" class="form-control" required />
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-danger">Motivo de la Actualización</label>
+                                <textarea name="motivo" class="form-control" rows="2" placeholder="Ej: Compra de jitomate muy ácido, se requirió ajuste de stock..." required></textarea>
+                                <small class="text-muted">Este comentario se guardará en el historial.</small>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-terracota rounded-pill py-2 fw-bold">
+                                    Actualizar Insumo
+                                </button>
+                                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,64 @@
+@model IEnumerable<Cafeteria.Models.Entities.Insumo>
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - Cafetería</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body style="background-color: var(--crema);">
+    <div class="container py-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+            <a asp-controller="Admin" asp-action="Index" class="btn btn-dark rounded-pill px-4 w-100 w-md-auto">
+                <i class="fas fa-arrow-left"></i> Menú
+            </a>
+            <div class="input-group w-100 mx-md-3">
+                <span class="input-group-text bg-white border-0 shadow-sm" style="border-radius: 20px 0 0 20px;">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" id="buscador" class="form-control border-0 shadow-sm" placeholder="Buscar insumo..." style="border-radius: 0 20px 20px 0;">
+            </div>
+            <a asp-action="Crear" class="btn btn-terracota rounded-pill px-4 w-100 w-md-auto">
+                <i class="fas fa-plus"></i> Agregar
+            </a>
+        </div>
+
+        <div class="row g-3" id="contenedorInsumos">
+            @foreach (var item in Model) {
+                <div class="col-12 col-md-6 col-lg-4 item-insumo">
+                    <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold nombre-insumo" style="color: var(--cafe)">@item.Nombre</h5>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge @(item.StockActual <= item.StockMinimo ? "bg-danger" : "bg-success")">
+                                    @item.StockActual @item.UnidadMedida
+                                </span>
+                                <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Stock Mín: @item.StockMinimo</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a asp-action="Editar" asp-route-id="@item.InsumoId" class="btn btn-sm btn-outline-primary flex-grow-1 rounded-pill">Editar</a>
+                                <a asp-action="Eliminar" asp-route-id="@item.InsumoId" class="btn btn-sm btn-outline-danger rounded-circle" onclick="return confirm('¿Eliminar?')"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <script>
+        // Lógica del buscador en tiempo real
+        document.getElementById('buscador').addEventListener('input', function(e) {
+            let filtro = e.target.value.toLowerCase();
+            let items = document.querySelectorAll('.item-insumo');
+            items.forEach(item => {
+                let nombre = item.querySelector('.nombre-insumo').innerText.toLowerCase();
+                item.style.display = nombre.includes(filtro) ? "block" : "none";
+            });
+        });
+    </script>
+</body>
+</html>
