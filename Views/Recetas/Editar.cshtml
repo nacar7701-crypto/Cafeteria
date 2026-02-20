@@ -1,0 +1,281 @@
+@model Cafeteria.Models.ViewModels.ProductoRecetaVM
+@{ Layout = null; }
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Receta - Cafetería</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        :root {
+            --crema: #fdfaf5;
+            --cafe: #4b3832;
+            --terracota: #be5a38;
+        }
+
+        .custom-card {
+            border: none;
+            border-radius: 20px;
+            background-color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 1px solid #eee;
+            padding: 10px 15px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--terracota);
+            box-shadow: 0 0 0 0.2rem rgba(190, 90, 56, 0.1);
+        }
+
+        .table thead {
+            background-color: var(--cafe);
+            color: white;
+        }
+
+        .table thead th:first-child { border-top-left-radius: 15px; }
+        .table thead th:last-child { border-top-right-radius: 15px; }
+
+        .btn-terracota {
+            background-color: var(--terracota);
+            color: white;
+            border-radius: 12px;
+            border: none;
+            padding: 12px;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-terracota:hover {
+            background-color: var(--cafe);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-add {
+            color: var(--terracota);
+            border: 2px dashed var(--terracota);
+            border-radius: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-add:hover {
+            background-color: var(--terracota);
+            color: white;
+        }
+
+        .costo-box {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #eee;
+        }
+    </style>
+</head>
+<body style="background-color: var(--crema);">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 style="color: var(--cafe); font-weight: bold;">
+                        <i class="fas fa-edit me-2" style="color: var(--terracota);"></i>Editar Receta
+                    </h2>
+                    <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
+                </div>
+
+                <form asp-action="Actualizar" method="post">
+                    <input type="hidden" asp-for="ProductoId" />
+                    <input type="hidden" asp-for="CostoTotal" id="hiddenCostoTotal" />
+
+                    <div class="card custom-card p-4 mb-4">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold" style="color: var(--cafe);">Nombre del Producto</label>
+                            <input asp-for="Nombre" class="form-control form-control-lg" placeholder="Ej. Capuchino Vainilla" required />
+                        </div>
+
+                        <h5 class="mb-3" style="color: var(--cafe); font-weight: bold;">Ingredientes</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle" id="tablaDetalle">
+                                <thead>
+                                    <tr>
+                                        <th class="border-0">Insumo</th>
+                                        <th class="border-0" style="width: 150px;">Cantidad</th>
+                                        <th class="border-0">Subtotal</th>
+                                        <th class="border-0"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="filasContenedor">
+                                    @for (int i = 0; i < Model.Detalles.Count; i++)
+                                    {
+                                        <tr class="fila">
+                                            <td>
+                                                <select name="Detalles[@i].InsumoId" class="form-select select-insumo" onchange="calcular()">
+                                                    @foreach (var ins in Model.InsumosDisponibles) {
+                                                        <option value="@ins.InsumoId" data-precio="@ins.PrecioCompra" 
+                                                                selected="@(ins.InsumoId == Model.Detalles[i].InsumoId)">
+                                                            @ins.Nombre
+                                                        </option>
+                                                    }
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input name="Detalles[@i].Cantidad" type="number" step="0.01" 
+                                                       class="form-control val-cant" value="@Model.Detalles[i].Cantidad" oninput="calcular()">
+                                            </td>
+                                            <td class="subtotal fw-bold" style="color: var(--cafe)">$0.00</td>
+                                            <td class="text-end">
+                                                <button type="button" class="btn btn-link text-danger p-0" onclick="$(this).closest('tr').remove(); renumerar();">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-add w-100 mt-2" onclick="agregarFila()">
+                            <i class="fas fa-plus-circle me-2"></i>Añadir Ingrediente
+                        </button>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="card custom-card p-4 h-100">
+                                <div class="row">
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label fw-bold" style="color: var(--cafe);">Margen de Ganancia</label>
+                                        <div class="input-group">
+                                            <input type="number" id="inputMargen" class="form-control" placeholder="Ej. 30" oninput="calcularPrecioPorMargen()">
+                                            <span class="input-group-text bg-white">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label fw-bold" style="color: var(--cafe);">Precio de Venta</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0">$</span>
+                                            <input asp-for="PrecioVenta" id="inputPrecioVenta" step="0.01" class="form-control border-start-0 ps-0 fw-bold text-primary" required oninput="calcularMargenPorPrecio()" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Utilidad estimada:</span>
+                                    <span id="spanUtilidad" class="fw-bold text-success">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="card custom-card p-4 costo-box h-100 shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-muted">Costo total:</span>
+                                    <span class="h4 mb-0 fw-bold" style="color: var(--cafe)">$<span id="spanCostoTotal">0.00</span></span>
+                                </div>
+                                <button type="submit" class="btn btn-terracota w-100 py-3 shadow">
+                                    <i class="fas fa-save me-2"></i>Actualizar Receta
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let index = @Model.Detalles.Count;
+        const opciones = `@if(Model.InsumosDisponibles != null){foreach(var i in Model.InsumosDisponibles){<option value="@i.InsumoId" data-precio="@i.PrecioCompra">@i.Nombre</option>}}`;
+
+        function agregarFila() {
+            const html = `<tr class="fila">
+                <td><select name="Detalles[${index}].InsumoId" class="form-select select-insumo" onchange="calcular()">${opciones}</select></td>
+                <td><input name="Detalles[${index}].Cantidad" type="number" step="0.01" class="form-control val-cant" value="1" oninput="calcular()"></td>
+                <td class="subtotal fw-bold" style="color: var(--cafe)">$0.00</td>
+                <td class="text-end"><button type="button" class="btn btn-link text-danger p-0" onclick="$(this).closest('tr').remove(); renumerar();"><i class="fas fa-trash-alt"></i></button></td>
+            </tr>`;
+            $("#filasContenedor").append(html);
+            index++;
+            calcular();
+        }
+
+        function renumerar() {
+            $(".fila").each(function(i) {
+                $(this).find(".select-insumo").attr("name", `Detalles[${i}].InsumoId`);
+                $(this).find(".val-cant").attr("name", `Detalles[${i}].Cantidad`);
+            });
+            index = $(".fila").length;
+            calcular();
+        }
+
+        // Caso 1: Usuario escribe el porcentaje de margen
+        function calcularPrecioPorMargen() {
+            const costo = parseFloat($("#hiddenCostoTotal").val()) || 0;
+            const margenPorcentaje = parseFloat($("#inputMargen").val()) || 0;
+            
+            // Fórmula: Costo + (Costo * %)
+            const nuevoPrecio = costo + (costo * (margenPorcentaje / 100));
+            $("#inputPrecioVenta").val(nuevoPrecio.toFixed(2));
+            actualizarUtilidad();
+        }
+
+        // Caso 2: Usuario escribe el precio de venta directamente
+        function calcularMargenPorPrecio() {
+            const costo = parseFloat($("#hiddenCostoTotal").val()) || 0;
+            const precioVenta = parseFloat($("#inputPrecioVenta").val()) || 0;
+            
+            if (costo > 0) {
+                // Fórmula: ((Precio / Costo) - 1) * 100
+                const margenRepresentado = ((precioVenta / costo) - 1) * 100;
+                $("#inputMargen").val(margenRepresentado.toFixed(0));
+            }
+            actualizarUtilidad();
+        }
+
+        function actualizarUtilidad() {
+            const costo = parseFloat($("#hiddenCostoTotal").val()) || 0;
+            const venta = parseFloat($("#inputPrecioVenta").val()) || 0;
+            const utilidad = venta - costo;
+            $("#spanUtilidad").text("$" + utilidad.toFixed(2));
+            
+            $("#spanUtilidad").toggleClass("text-danger", utilidad < 0).toggleClass("text-success", utilidad >= 0);
+        }
+
+        function calcular() {
+            let total = 0;
+            $(".fila").each(function() {
+                let p = parseFloat($(this).find(".select-insumo option:selected").data("precio")) || 0;
+                let c = parseFloat($(this).find(".val-cant").val()) || 0;
+                let sub = p * c;
+                $(this).find(".subtotal").text("$" + sub.toFixed(2));
+                total += sub;
+            });
+            $("#spanCostoTotal").text(total.toFixed(2));
+            $("#hiddenCostoTotal").val(total.toFixed(2));
+            
+            // Al cambiar ingredientes, mantenemos el margen y recalculamos el precio
+            calcularPrecioPorMargen();
+        }
+
+        $(document).ready(function() {
+            // Inicializar margen basado en el precio que ya trae el producto
+            const costoInicial = parseFloat("@Model.CostoTotal") || 0;
+            const precioInicial = parseFloat("@Model.PrecioVenta") || 0;
+            if(costoInicial > 0){
+                const margenInicial = ((precioInicial / costoInicial) - 1) * 100;
+                $("#inputMargen").val(margenInicial.toFixed(0));
+            }
+            calcular();
+        });
+    </script>
+</body>
+</html>

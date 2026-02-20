@@ -11,13 +11,15 @@
         --gris-claro: #f8f9fa;
     }
 
-    body { background-color: var(--gris-claro); }
+    body {
+        background-color: var(--gris-claro);
+    }
 
     .card-pos {
         height: 85vh;
         border-radius: 20px;
         border: none;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
 
     .producto-btn {
@@ -30,7 +32,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
     }
 
     .producto-btn:hover {
@@ -39,7 +41,11 @@
         color: var(--terracota);
     }
 
-    .producto-btn i { font-size: 1.8rem; color: var(--cafe); margin-bottom: 8px; }
+    .producto-btn i {
+        font-size: 1.8rem;
+        color: var(--cafe);
+        margin-bottom: 8px;
+    }
 
     .ticket-container {
         display: flex;
@@ -64,9 +70,18 @@
         transition: 0.3s;
     }
 
-    .btn-cobrar:hover { background-color: #c65d48; color: white; transform: scale(1.02); }
-    
-    .badge-precio { background-color: var(--cafe); color: white; border-radius: 10px; padding: 5px 10px; }
+    .btn-cobrar:hover {
+        background-color: #c65d48;
+        color: white;
+        transform: scale(1.02);
+    }
+
+    .badge-precio {
+        background-color: var(--cafe);
+        color: white;
+        border-radius: 10px;
+        padding: 5px 10px;
+    }
 </style>
 
 <div class="container-fluid mt-4">
@@ -81,7 +96,8 @@
                         @foreach (var p in Model)
                         {
                             <div class="col-6 col-sm-4 col-lg-3">
-                                <button class="btn w-100 producto-btn" onclick="agregarAlCarrito(@p.ProductoId, '@p.Nombre', @p.PrecioVenta)">
+                                <button class="btn w-100 producto-btn"
+                                        onclick="agregarAlCarrito(@p.ProductoId, '@p.Nombre', @p.PrecioVenta)">
                                     <i class="fas fa-mug-hot"></i>
                                     <span class="fw-bold text-dark d-block text-truncate w-100">@p.Nombre</span>
                                     <span class="small badge-precio mt-2">$@p.PrecioVenta</span>
@@ -95,15 +111,16 @@
 
         <div class="col-md-4">
             <div class="card card-pos">
-                <div class="card-header text-white py-3" style="background-color: var(--cafe); border-radius: 20px 20px 0 0;">
+                <div class="card-header text-white py-3"
+                     style="background-color: var(--cafe); border-radius: 20px 20px 0 0;">
                     <h5 class="mb-0 text-center"><i class="fas fa-receipt me-2"></i> Ticket de Venta</h5>
                 </div>
-                
+
                 <div class="ticket-container">
                     <div class="ticket-items">
                         <table class="table table-borderless align-middle">
                             <tbody id="lista-ticket">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
 
@@ -126,81 +143,126 @@
 <script>
     let carrito = [];
 
-function agregarAlCarrito(id, nombre, precio) {
+    function agregarAlCarrito(id, nombre, precio) {
     const itemExistente = carrito.find(p => p.productoId === id);
-    
+
     if (itemExistente) {
-        itemExistente.cantidad++;
+    itemExistente.cantidad++;
     } else {
-        carrito.push({
-            productoId: id,
-            nombre: nombre,
-            precio: precio,
-            cantidad: 1
-        });
-    }
-    actualizarVista();
-}
-
-// NUEVA FUNCIÓN: Restar 1 a la cantidad o eliminar si llega a 0
-function restarCantidad(index) {
-    if (carrito[index].cantidad > 1) {
-        carrito[index].cantidad--;
-    } else {
-        carrito.splice(index, 1);
-    }
-    actualizarVista();
-}
-
-// FUNCIÓN ACTUALIZADA: Eliminar el renglón completo sin importar la cantidad
-function eliminarDelTicket(index) {
-    Swal.fire({
-        title: '¿Eliminar producto?',
-        text: `Se quitará "${carrito[index].nombre}" del ticket`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#e2725b',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, quitar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            carrito.splice(index, 1);
-            actualizarVista();
-        }
+    carrito.push({
+    productoId: id,
+    nombre: nombre,
+    precio: precio,
+    cantidad: 1
     });
-}
+    }
+    actualizarVista();
+    }
 
-function actualizarVista() {
+    function finalizarVenta() {
+    if (carrito.length === 0) {
+    Swal.fire('Ticket vacío', 'Agrega productos antes de cobrar', 'warning');
+    return;
+    }
+
+    Swal.fire({
+    title: '¿Confirmar Venta?',
+    text: "Se registrará la venta y se enviará a cocina",
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#e2725b',
+    confirmButtonText: 'Sí, finalizar',
+    cancelButtonText: 'Cancelar'
+    }).then((result) => {
+    if (result.isConfirmed) {
+    // Enviamos el carrito al servidor
+    fetch('/Venta/GuardarVenta', {
+    method: 'POST',
+    headers: {
+    'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(carrito) // Enviamos el array de objetos
+    })
+    .then(response => response.json())
+    .then(data => {
+    if (data.success) {
+    Swal.fire('¡Venta Exitosa!', data.message, 'success')
+    .then(() => {
+    carrito = []; // Limpiamos carrito
+    actualizarVista();
+    // Opcional: window.location.reload(); 
+    });
+    } else {
+    Swal.fire('Error', data.message, 'error');
+    }
+    })
+    .catch(error => {
+    console.error('Error:', error);
+    Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+    });
+    }
+    });
+    }
+
+    // NUEVA FUNCIÓN: Restar 1 a la cantidad o eliminar si llega a 0
+    function restarCantidad(index) {
+    if (carrito[index].cantidad > 1) {
+    carrito[index].cantidad--;
+    } else {
+    carrito.splice(index, 1);
+    }
+    actualizarVista();
+    }
+
+    // FUNCIÓN ACTUALIZADA: Eliminar el renglón completo sin importar la cantidad
+    function eliminarDelTicket(index) {
+    Swal.fire({
+    title: '¿Eliminar producto?',
+    text: `Se quitará "${carrito[index].nombre}" del ticket`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e2725b',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, quitar',
+    cancelButtonText: 'Cancelar'
+    }).then((result) => {
+    if (result.isConfirmed) {
+    carrito.splice(index, 1);
+    actualizarVista();
+    }
+    });
+    }
+
+    function actualizarVista() {
     const tabla = document.getElementById('lista-ticket');
     const totalTxt = document.getElementById('total-final');
     let html = '';
     let total = 0;
 
     carrito.forEach((p, index) => {
-        let subtotal = p.precio * p.cantidad;
-        total += subtotal;
-        html += `
-            <tr class="animate__animated animate__fadeIn">
-                <td>
-                    <div class="fw-bold">${p.nombre}</div>
-                    <div class="d-flex align-items-center mt-1">
-                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="restarCantidad(${index})">-</button>
-                        <span class="mx-2 small fw-bold">${p.cantidad} x $${p.precio}</span>
-                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="agregarAlCarrito(${p.productoId}, '${p.nombre}', ${p.precio})">+</button>
-                    </div>
-                </td>
-                <td class="text-end fw-bold align-middle">$${subtotal.toFixed(2)}</td>
-                <td class="text-end align-middle" style="width: 40px;">
-                    <button class="btn btn-link text-danger p-0" onclick="eliminarDelTicket(${index})" title="Eliminar todo">
-                        <i class="fas fa-times-circle fa-lg"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
+    let subtotal = p.precio * p.cantidad;
+    total += subtotal;
+    html += `
+    <tr class="animate__animated animate__fadeIn">
+    <td>
+    <div class="fw-bold">${p.nombre}</div>
+    <div class="d-flex align-items-center mt-1">
+    <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="restarCantidad(${index})">-</button>
+    <span class="mx-2 small fw-bold">${p.cantidad} x $${p.precio}</span>
+    <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="agregarAlCarrito(${p.productoId}, '${p.nombre}', ${p.precio})">+</button>
+    </div>
+    </td>
+    <td class="text-end fw-bold align-middle">$${subtotal.toFixed(2)}</td>
+    <td class="text-end align-middle" style="width: 40px;">
+    <button class="btn btn-link text-danger p-0" onclick="eliminarDelTicket(${index})" title="Eliminar todo">
+    <i class="fas fa-times-circle fa-lg"></i>
+    </button>
+    </td>
+    </tr>
+    `;
     });
 
     tabla.innerHTML = html;
     totalTxt.innerText = `$${total.toFixed(2)}`;
-}
+    }
 </script>

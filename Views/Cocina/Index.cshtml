@@ -1,33 +1,103 @@
-@{
-    ViewData["Title"] = "Monitor de Cocina";
-}
-<style>
-    body { background-color: #1a1a1a; color: #eee; }
-    .card-pedido { background: #2d2d2d; border-left: 10px solid var(--terracota); margin-bottom: 15px; }
-    .badge-tiempo { background-color: var(--verde-oliva); color: white; }
-</style>
+@model List<Cafeteria.Models.ViewModels.CocinaMonitorVM>
+@{ Layout = null; }
 
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 style="color: var(--crema)">👨‍🍳 Monitor de Pedidos</h1>
-        <span class="badge p-2" style="background: var(--cafe)">Usuario: @Context.Session.GetString("Nombre")</span>
-    </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>KDS - Monitor de Cocina</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        :root { --cafe: #4b3832; --terracota: #be5a38; --verde-ok: #28a745; }
+        body { background-color: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; }
+        
+        /* Columna Izquierda: Atendiendo */
+        .seccion-principal { background-color: #252525; height: 100vh; border-right: 5px solid #333; }
+        .card-atendiendo { background-color: white; color: var(--cafe); border-radius: 25px; border: 8px solid var(--terracota); }
+        .num-grande { font-size: 8rem; font-weight: 900; line-height: 1; color: var(--terracota); }
+        
+        /* Columna Derecha: Fila */
+        .seccion-fila { background-color: #1a1a1a; height: 100vh; overflow-y: auto; }
+        .item-fila { background-color: #333; border-radius: 15px; margin-bottom: 15px; border-left: 10px solid var(--cafe); transition: 0.3s; }
+        
+        .badge-tiempo { font-size: 1.2rem; border-radius: 50px; padding: 5px 15px; }
+        .alerta-critica { background-color: #ff4757; color: white; animation: blink 1s infinite; }
+        @@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
 
+<div class="container-fluid">
     <div class="row">
-        <div class="col-md-4">
-            <div class="card card-pedido shadow">
-                <div class="card-body">
-                    <h5 class="card-title d-flex justify-content-between">
-                        Orden #105 <span class="badge badge-tiempo">Hace 5 min</span>
-                    </h5>
-                    <ul class="list-unstyled">
-                        <li><strong>2x</strong> Chilaquiles Verdes</li>
-                        <li><strong>1x</strong> Café Americano</li>
-                    </ul>
-                    <hr style="border-color: #444">
-                    <button class="btn btn-success w-100">Marcar como Listo ✅</button>
+        @if (Model != null && Model.Any())
+        {
+            var actual = Model.First();
+            var enFila = Model.Skip(1).ToList();
+
+            <div class="col-md-7 seccion-principal p-5 d-flex flex-column justify-content-center">
+                <div class="text-center mb-4">
+                    <h1 class="display-3 fw-bold text-uppercase" style="color: var(--terracota)">
+                        <i class="fas fa-fire-burner"></i> EN PREPARACIÓN
+                    </h1>
+                </div>
+
+                <div class="card card-atendiendo p-4 shadow-lg text-center">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="h3 fw-bold"><i class="far fa-clock"></i> @actual.HoraPedido.ToString("HH:mm")</span>
+                        <span class="badge bg-dark h4">ORDEN ACTUAL</span>
+                    </div>
+                    
+                    <div class="num-grande">@actual.CantidadTotal</div>
+                    <h1 class="display-1 fw-extrabold text-uppercase mb-4">@actual.ProductoNombre</h1>
+
+                    <form asp-action="CompletarPedido" method="post">
+                        <input type="hidden" name="detalleId" value="@actual.DetalleId" />
+                        <button type="submit" class="btn btn-success btn-grow w-100 py-4 display-6 rounded-pill fw-bold shadow">
+                            <i class="fas fa-check-double me-3"></i> ¡LISTO PARA ENTREGAR!
+                        </button>
+                    </form>
                 </div>
             </div>
-        </div>
+
+            <div class="col-md-5 seccion-fila p-4">
+                <h2 class="text-center mb-4 fw-bold text-muted text-uppercase">Próximos en Fila (@enFila.Count)</h2>
+                
+                @foreach (var sig in enFila)
+                {
+                    var mins = (DateTime.Now - sig.HoraPedido).TotalMinutes;
+                    <div class="item-fila p-3 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="h1 fw-bold me-4 mb-0" style="color: var(--terracota)">@sig.CantidadTotal</div>
+                            <div>
+                                <h3 class="mb-0 text-uppercase fw-bold">@sig.ProductoNombre</h3>
+                                <small class="text-muted text-uppercase">Recibido: @sig.HoraPedido.ToString("HH:mm")</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge-tiempo @(mins > 10 ? "alerta-critica" : "bg-secondary")">
+                                @Math.Floor(mins)' min
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="col-12 text-center mt-5 py-5">
+                <i class="fas fa-mug-hot fa-10x text-muted mb-4"></i>
+                <h1 class="display-1 fw-bold text-muted">COCINA DESPEJADA</h1>
+                <p class="h3 text-muted">No hay órdenes pendientes en este momento.</p>
+            </div>
+        }
     </div>
 </div>
+
+<script>
+    // Auto-recarga cada 10 segundos
+    setTimeout(() => location.reload(), 10000);
+</script>
+
+</body>
+</html>

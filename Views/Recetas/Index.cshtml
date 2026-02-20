@@ -1,0 +1,138 @@
+@model IEnumerable<Cafeteria.Models.Entities.Producto>
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recetario - Cafetería</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        .custom-card {
+            border: none;
+            border-radius: 20px;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .btn-terracota {
+            background-color: var(--terracota);
+            color: white;
+            border-radius: 15px;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-terracota:hover {
+            background-color: var(--cafe);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .table thead {
+            background-color: var(--cafe);
+            color: white;
+        }
+
+        .table thead th:first-child { border-top-left-radius: 15px; }
+        .table thead th:last-child { border-top-right-radius: 15px; }
+
+        .action-btn {
+            border-radius: 10px;
+            width: 35px;
+            height: 35px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        
+        .action-btn:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body style="background-color: var(--crema);">
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h1 style="color: var(--cafe); font-weight: bold;">📖 Recetario</h1>
+                <p class="text-muted">Administra los productos y sus costos de producción</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-controller="Index" asp-action="Admin" class="btn btn-outline-secondary px-4 rounded-pill">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+                <a asp-action="Crear" class="btn btn-terracota px-4">
+                    <i class="fas fa-plus me-2"></i>Nueva Receta
+                </a>
+            </div>
+        </div>
+
+        <div class="card custom-card p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th class="border-0">Producto</th>
+                            <th class="border-0">Costo Prep.</th>
+                            <th class="border-0">Precio Venta</th>
+                            <th class="border-0 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold" style="color: var(--cafe)">@item.Nombre</td>
+                                <td>$@item.CostoProduccion.ToString("N2")</td>
+                                <td class="fw-bold text-success">$@item.PrecioVenta.ToString("N2")</td>
+                                <td class="text-center">
+                                    <a asp-action="Editar" asp-route-id="@item.ProductoId" 
+                                       class="btn btn-warning action-btn text-white me-2">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <button onclick="confirmarEliminar(@item.ProductoId, '@item.Nombre')" 
+                                            class="btn btn-danger action-btn">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <form id="formEliminar" asp-action="Eliminar" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="eliminarId" />
+    </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmarEliminar(id, nombre) {
+            Swal.fire({
+                title: '¿Eliminar Receta?',
+                text: `El producto "${nombre}" dejará de estar disponible en caja.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                background: '#fff',
+                borderRadius: '20px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('eliminarId').value = id;
+                    document.getElementById('formEliminar').submit();
+                }
+            })
+        }
+    </script>
+</body>
+</html>

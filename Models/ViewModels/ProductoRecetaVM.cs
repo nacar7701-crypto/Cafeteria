@@ -4,14 +4,15 @@ namespace Cafeteria.Models.ViewModels
 {
     public class ProductoRecetaVM
     {
+        // ESTA ES LA PROPIEDAD QUE FALTA PARA LA EDICIÓN
+        public int ProductoId { get; set; } 
+
         public string Nombre { get; set; }
         public decimal PrecioVenta { get; set; }
         public decimal CostoTotal { get; set; }
 
-        // La lista debe llamarse exactamente 'Detalles' para coincidir con el JS
         public List<DetalleRecetaInput> Detalles { get; set; } = new List<DetalleRecetaInput>();
 
-        // Para llenar el combo de selección
         public List<Insumo>? InsumosDisponibles { get; set; }
     }
 

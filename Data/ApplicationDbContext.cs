@@ -15,5 +15,8 @@ namespace Cafeteria.Data
 
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Receta> Recetas { get; set; }
+
+        public DbSet<Venta> Ventas { get; set; }
+        public DbSet<DetalleVenta> DetalleVentas { get; set; }
     }
 }
