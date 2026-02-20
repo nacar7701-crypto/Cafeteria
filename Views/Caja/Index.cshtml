@@ -1,12 +1,206 @@
+@model IEnumerable<Cafeteria.Models.Entities.Producto>
 @{
-    ViewData["Title"] = "Panel de Caja";
+    ViewData["Title"] = "Punto de Venta";
 }
-<div class="container mt-5">
-    <div class="card border-0 shadow-sm" style="border-left: 5px solid var(--verde-oliva) !important;">
-        <div class="card-body">
-            <h1 style="color: var(--cafe)">Bienvenido a la Caja</h1>
-            <p>Hola, <strong>@Context.Session.GetString("Nombre")</strong>. Estás listo para vender.</p>
-            <a href="@Url.Action("Logout", "Account")" class="btn btn-sm btn-outline-danger">Cerrar Sesión</a>
+
+<style>
+    :root {
+        --cafe: #4b3621;
+        --terracota: #e2725b;
+        --crema: #f5f5dc;
+        --gris-claro: #f8f9fa;
+    }
+
+    body { background-color: var(--gris-claro); }
+
+    .card-pos {
+        height: 85vh;
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+
+    .producto-btn {
+        transition: all 0.2s;
+        border: 2px solid transparent;
+        border-radius: 15px;
+        background: white;
+        height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+
+    .producto-btn:hover {
+        transform: translateY(-5px);
+        border-color: var(--terracota);
+        color: var(--terracota);
+    }
+
+    .producto-btn i { font-size: 1.8rem; color: var(--cafe); margin-bottom: 8px; }
+
+    .ticket-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .ticket-items {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .btn-cobrar {
+        background-color: var(--terracota);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 15px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        transition: 0.3s;
+    }
+
+    .btn-cobrar:hover { background-color: #c65d48; color: white; transform: scale(1.02); }
+    
+    .badge-precio { background-color: var(--cafe); color: white; border-radius: 10px; padding: 5px 10px; }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card card-pos">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="mb-0 fw-bold"><i class="fas fa-th me-2 text-muted"></i> Menú de Cafetería</h4>
+                </div>
+                <div class="card-body overflow-auto">
+                    <div class="row g-3">
+                        @foreach (var p in Model)
+                        {
+                            <div class="col-6 col-sm-4 col-lg-3">
+                                <button class="btn w-100 producto-btn" onclick="agregarAlCarrito(@p.ProductoId, '@p.Nombre', @p.PrecioVenta)">
+                                    <i class="fas fa-mug-hot"></i>
+                                    <span class="fw-bold text-dark d-block text-truncate w-100">@p.Nombre</span>
+                                    <span class="small badge-precio mt-2">$@p.PrecioVenta</span>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card card-pos">
+                <div class="card-header text-white py-3" style="background-color: var(--cafe); border-radius: 20px 20px 0 0;">
+                    <h5 class="mb-0 text-center"><i class="fas fa-receipt me-2"></i> Ticket de Venta</h5>
+                </div>
+                
+                <div class="ticket-container">
+                    <div class="ticket-items">
+                        <table class="table table-borderless align-middle">
+                            <tbody id="lista-ticket">
+                                </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card-footer bg-white border-0 p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="h5 mb-0">Total:</span>
+                            <span class="h3 mb-0 fw-bold text-success" id="total-final">$0.00</span>
+                        </div>
+                        <button class="btn btn-cobrar w-100 shadow-sm" onclick="finalizarVenta()">
+                            FINALIZAR VENTA
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    let carrito = [];
+
+function agregarAlCarrito(id, nombre, precio) {
+    const itemExistente = carrito.find(p => p.productoId === id);
+    
+    if (itemExistente) {
+        itemExistente.cantidad++;
+    } else {
+        carrito.push({
+            productoId: id,
+            nombre: nombre,
+            precio: precio,
+            cantidad: 1
+        });
+    }
+    actualizarVista();
+}
+
+// NUEVA FUNCIÓN: Restar 1 a la cantidad o eliminar si llega a 0
+function restarCantidad(index) {
+    if (carrito[index].cantidad > 1) {
+        carrito[index].cantidad--;
+    } else {
+        carrito.splice(index, 1);
+    }
+    actualizarVista();
+}
+
+// FUNCIÓN ACTUALIZADA: Eliminar el renglón completo sin importar la cantidad
+function eliminarDelTicket(index) {
+    Swal.fire({
+        title: '¿Eliminar producto?',
+        text: `Se quitará "${carrito[index].nombre}" del ticket`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e2725b',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, quitar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            carrito.splice(index, 1);
+            actualizarVista();
+        }
+    });
+}
+
+function actualizarVista() {
+    const tabla = document.getElementById('lista-ticket');
+    const totalTxt = document.getElementById('total-final');
+    let html = '';
+    let total = 0;
+
+    carrito.forEach((p, index) => {
+        let subtotal = p.precio * p.cantidad;
+        total += subtotal;
+        html += `
+            <tr class="animate__animated animate__fadeIn">
+                <td>
+                    <div class="fw-bold">${p.nombre}</div>
+                    <div class="d-flex align-items-center mt-1">
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="restarCantidad(${index})">-</button>
+                        <span class="mx-2 small fw-bold">${p.cantidad} x $${p.precio}</span>
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="agregarAlCarrito(${p.productoId}, '${p.nombre}', ${p.precio})">+</button>
+                    </div>
+                </td>
+                <td class="text-end fw-bold align-middle">$${subtotal.toFixed(2)}</td>
+                <td class="text-end align-middle" style="width: 40px;">
+                    <button class="btn btn-link text-danger p-0" onclick="eliminarDelTicket(${index})" title="Eliminar todo">
+                        <i class="fas fa-times-circle fa-lg"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tabla.innerHTML = html;
+    totalTxt.innerText = `$${total.toFixed(2)}`;
+}
+</script>
