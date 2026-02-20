@@ -8,13 +8,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Insumo - Cafetería</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        :root { --cafe: #4b3621; --terracota: #e2725b; --crema: #f5f5dc; }
+        .btn-terracota { background-color: var(--terracota); color: white; }
+        .btn-terracota:hover { background-color: #c65d48; color: white; }
+    </style>
 </head>
 <body style="background-color: var(--crema);">
     <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-12 col-md-8 col-lg-6">
+            <div class="col-12 col-md-10 col-lg-8">
                 <div class="card shadow border-0" style="border-radius: 20px;">
                     <div class="card-header text-white text-center py-3" style="background-color: var(--cafe); border-radius: 20px 20px 0 0;">
                         <h4 class="mb-0"><i class="fas fa-edit me-2"></i> Editar Insumo</h4>
@@ -23,19 +27,14 @@
                         <form asp-action="Editar" method="post">
                             <input type="hidden" asp-for="InsumoId" />
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold" style="color: var(--cafe)">Nombre del Insumo</label>
-                                <input asp-for="Nombre" class="form-control" required />
-                            </div>
-
                             <div class="row">
-                                <div class="col-6 mb-3">
-                                    <label class="form-label fw-bold">Stock Actual</label>
-                                    <input asp-for="StockActual" type="number" step="0.01" class="form-control" required />
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label fw-bold" style="color: var(--cafe)">Nombre del Insumo</label>
+                                    <input asp-for="Nombre" class="form-control rounded-pill" required />
                                 </div>
-                                <div class="col-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label fw-bold">U. Medida</label>
-                                    <select asp-for="UnidadMedida" class="form-select">
+                                    <select asp-for="UnidadMedida" id="selectUnidad" class="form-select rounded-pill">
                                         <option value="Gramos">Gramos (g)</option>
                                         <option value="Mililitros">Mililitros (ml)</option>
                                         <option value="Piezas">Piezas (pza)</option>
@@ -45,24 +44,42 @@
 
                             <div class="row">
                                 <div class="col-6 mb-3">
-                                    <label class="form-label fw-bold">Costo Unit.</label>
-                                    <input asp-for="PrecioCompra" type="number" step="0.01" class="form-control" required />
+                                    <label class="form-label fw-bold">Stock Actual (<span class="unit-text">u</span>)</label>
+                                    <input asp-for="StockActual" type="number" step="0.01" class="form-control rounded-pill" required />
                                 </div>
                                 <div class="col-6 mb-3">
                                     <label class="form-label fw-bold">Stock Mínimo</label>
-                                    <input asp-for="StockMinimo" type="number" step="0.01" class="form-control" required />
+                                    <input asp-for="StockMinimo" type="number" step="0.01" class="form-control rounded-pill" required />
                                 </div>
+                            </div>
+
+                            <div class="p-3 mb-4" style="background-color: #f8f9fa; border-radius: 15px; border: 1px dashed var(--cafe);">
+                                <h6 class="text-muted mb-3"><i class="fas fa-calculator me-2"></i> Recalcular Costo Unitario</h6>
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <label class="small">Cantidad Comprada</label>
+                                        <input type="number" id="calcCantidad" class="form-control form-control-sm" value="1" oninput="recalcular()">
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <label class="small">Precio Total Pagado</label>
+                                        <input type="number" id="calcPrecioTotal" class="form-control form-control-sm" step="0.01" value="@Model.PrecioCompra.ToString("F2")" oninput="recalcular()">
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <label class="small fw-bold text-primary">Costo por <span class="unit-text">u</span></label>
+                                        <input asp-for="PrecioCompra" id="inputPrecioFinal" type="number" step="0.0001" class="form-control form-control-sm border-primary fw-bold" readonly />
+                                    </div>
+                                </div>
+                                <small class="text-muted text-center d-block mt-2">Si no cambió el precio, deja la cantidad en 1.</small>
                             </div>
 
                             <div class="mb-4">
                                 <label class="form-label fw-bold text-danger">Motivo de la Actualización</label>
-                                <textarea name="motivo" class="form-control" rows="2" placeholder="Ej: Compra de jitomate muy ácido, se requirió ajuste de stock..." required></textarea>
-                                <small class="text-muted">Este comentario se guardará en el historial.</small>
+                                <textarea name="motivo" class="form-control" rows="2" placeholder="Ej: Aumento de precio del proveedor..." required></textarea>
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-terracota rounded-pill py-2 fw-bold">
-                                    Actualizar Insumo
+                                <button type="submit" class="btn btn-terracota rounded-pill py-2 fw-bold shadow-sm">
+                                    <i class="fas fa-save me-2"></i> Guardar Cambios
                                 </button>
                                 <a asp-action="Index" class="btn btn-outline-secondary rounded-pill">Cancelar</a>
                             </div>
@@ -72,5 +89,27 @@
             </div>
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function recalcular() {
+            const cant = parseFloat($('#calcCantidad').val()) || 1;
+            const total = parseFloat($('#calcPrecioTotal').val()) || 0;
+            const unitario = total / cant;
+            $('#inputPrecioFinal').val(unitario.toFixed(4));
+        }
+
+        $('#selectUnidad').on('change', function() {
+            let u = $(this).val();
+            let txt = u === "Gramos" ? "g" : (u === "Mililitros" ? "ml" : "pza");
+            $('.unit-text').text(txt);
+        });
+
+        $(document).ready(function() {
+            $('#selectUnidad').trigger('change');
+            // No ejecutamos recalcular() al inicio para no sobreescribir el valor que ya viene de DB 
+            // a menos que el usuario mueva algo.
+        });
+    </script>
 </body>
 </html>
