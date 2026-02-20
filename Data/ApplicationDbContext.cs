@@ -12,5 +12,8 @@ namespace Cafeteria.Data
 
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Insumo> Insumos { get; set; }
+
+        public DbSet<Producto> Productos { get; set; }
+        public DbSet<Receta> Recetas { get; set; }
     }
 }

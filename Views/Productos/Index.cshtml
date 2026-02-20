@@ -1,0 +1,80 @@
+@model IEnumerable<Cafeteria.Models.Entities.Producto>
+@{ Layout = null; }
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú de Productos - Cafetería</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        :root { --cafe: #4b3621; --terracota: #e2725b; --crema: #f5f5dc; }
+        body { background-color: var(--crema); font-family: 'Segoe UI', sans-serif; }
+        .product-card { border: none; border-radius: 15px; transition: 0.3s; background: white; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .badge-cost { background-color: var(--crema); color: var(--cafe); font-weight: bold; }
+        .badge-price { background-color: var(--terracota); color: white; }
+        .btn-add { background-color: var(--cafe); color: white; border-radius: 50px; }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h1 style="color: var(--cafe); font-weight: bold;">🍽️ Menú de Productos</h1>
+                <p class="text-muted">Gestiona tus platillos y revisa su rentabilidad</p>
+            </div>
+            <a asp-action="CrearReceta" class="btn btn-add px-4 shadow">
+                <i class="fas fa-plus me-2"></i>Nueva Receta
+            </a>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100 product-card p-3 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title fw-bold" style="color: var(--cafe)">@item.Nombre</h5>
+                                @if(item.Activo){
+                                    <span class="badge bg-success small">Activo</span>
+                                } else {
+                                    <span class="badge bg-secondary small">Inactivo</span>
+                                }
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="small text-muted">Costo Prod.</span>
+                                <span class="badge badge-cost">$ @item.CostoProduccion</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="small text-muted">Precio Venta</span>
+                                <span class="badge badge-price">$ @item.PrecioVenta</span>
+                            </div>
+                            
+                            @{
+                                var utilidad = item.PrecioVenta - item.CostoProduccion;
+                                var porcentaje = item.CostoProduccion > 0 ? (utilidad / item.CostoProduccion) * 100 : 0;
+                            }
+                            
+                            <div class="pt-2 border-top">
+                                <small class="text-muted d-block mb-1">Ganancia estimada:</small>
+                                <h6 class="text-success fw-bold">
+                                    $ @utilidad.ToString("N2") 
+                                    <span class="small fw-normal">(@porcentaje.ToString("N0")%)</span>
+                                </h6>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 d-flex justify-content-around">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3">Editar</button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3">Pausar</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>

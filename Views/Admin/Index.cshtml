@@ -1,4 +1,6 @@
-@{ Layout = null; }
+@{
+    Layout = null;
+}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,19 +10,22 @@
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
-        .menu-card {
-            transition: transform 0.2s;
-            cursor: pointer;
-            border: none;
-            border-radius: 20px;
-            background-color: white;
-        }
-        .menu-card:hover { transform: scale(1.05); }
-        .icon-box {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            color: var(--terracota);
-        }
+            .menu-card {
+                transition: transform 0.2s;
+                cursor: pointer;
+                border: none;
+                border-radius: 20px;
+                background-color: white;
+            }
+            .menu-card:hover {
+                transform: scale(1.05);
+            }
+
+            .icon-box {
+                font-size: 3rem;
+                margin-bottom: 15px;
+                color: var(--terracota);
+            }
     </style>
 </head>
 <body style="background-color: var(--crema);">
@@ -41,11 +46,15 @@
                 </a>
             </div>
             <div class="col-12 col-sm-6 col-lg-3">
-                <div class="card h-100 shadow-sm menu-card p-4 text-center">
-                    <div class="icon-box"><i class="fas fa-user-graduate"></i></div>
-                    <h5 style="color: var(--cafe)">Alumnos</h5>
-                    <p class="small text-muted">Saldos y registros</p>
-                </div>
+                <a asp-controller="Recetas" asp-action="Crear" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm menu-card p-4 text-center">
+                        <div class="icon-box">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h5 style="color: var(--cafe)">Crear Recetas</h5>
+                        <p class="small text-muted">Costeo y armado de platillos</p>
+                    </div>
+                </a>
             </div>
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="card h-100 shadow-sm menu-card p-4 text-center">
@@ -64,8 +73,10 @@
         </div>
 
         <div class="text-center mt-5">
-            <a asp-controller="Account" asp-action="Logout" class="btn btn-outline-danger px-4 rounded-pill">Cerrar Sesión</a>
+            <a asp-controller="Account" asp-action="Logout" class="btn btn-outline-danger px-4 rounded-pill">Cerrar
+                Sesión</a>
+            </div>
         </div>
-    </div>
-</body>
+    </body>
+
 </html>

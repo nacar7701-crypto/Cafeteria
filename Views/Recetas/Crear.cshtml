@@ -1,0 +1,230 @@
+@model Cafeteria.Models.ViewModels.ProductoRecetaVM
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Receta - Cafetería</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+                :root {
+                    --cafe: #4b3621;
+                    --terracota: #e2725b;
+                    --crema: #f5f5dc;
+                }
+
+                body {
+                    background-color: var(--crema);
+                    font-family: 'Segoe UI', sans-serif;
+                }
+
+                .recipe-card {
+                    border: none;
+                    border-radius: 20px;
+                    background-color: white;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                }
+                .btn-terracota {
+                    background-color: var(--terracota);
+                    color: white;
+                    border-radius: 25px;
+                    border: none;
+                    padding: 10px 25px;
+                }
+                .btn-terracota:hover {
+                    background-color: #c65d48;
+                }
+
+                .table-custom thead {
+                    background-color: var(--cafe);
+                    color: white;
+                }
+
+                .cost-summary {
+                    background-color: #fafafa;
+                    border-radius: 15px;
+                    border-left: 5px solid var(--terracota);
+                }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h2 class="mb-4" style="color: var(--cafe); font-weight: bold;">
+            <i class="fas fa-receipt me-2"></i>Nueva Receta de Platillo
+        </h2>
+
+        <form asp-action="GuardarProductoConReceta" asp-controller="Recetas" method="post" id="formReceta">
+
+            <input type="hidden" asp-for="CostoTotal" id="hiddenCostoTotal" />
+
+            <div class="card recipe-card p-4 mb-4">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Nombre del Producto Final</label>
+                        <input asp-for="Nombre" class="form-control rounded-pill"
+                               placeholder="Ej. Chilaquiles Especiales" required>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3" style="color: var(--terracota)">
+                        <i class="fas fa-list-check me-2"></i>Ingredientes y Desechables
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle" id="tablaDetalle">
+                            <thead class="table-custom">
+                                <tr>
+                                    <th style="width: 40%;">Insumo</th>
+                                    <th style="width: 20%;">Costo Unitario</th>
+                                    <th style="width: 15%;">Cantidad</th>
+                                    <th style="width: 15%;">Subtotal</th>
+                                    <th style="width: 10%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="filasContenedor">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="agregarFila()">
+                        <i class="fas fa-plus me-1"></i> Agregar Insumo/Desechable
+                    </button>
+                </div>
+
+                <div class="row justify-content-end">
+                    <div class="col-md-5">
+                        <div class="card p-4 cost-summary shadow-sm">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Costo total de insumos:</span>
+                                <span class="fw-bold">$ <span id="spanCostoTotal">0.00</span></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="small fw-bold">Margen de Ganancia (%)</label>
+                                <input type="number" id="inputMargen" class="form-control form-control-sm" value="100"
+                                       oninput="calcularTodo()">
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Precio Sugerido:</span>
+                                <span class="text-success fw-bold">$ <span id="spanPrecioSugerido">0.00</span></span>
+                            </div>
+
+                            <hr>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: var(--cafe)">Precio de Venta Final</label>
+                                <input type="number" step="0.01" asp-for="PrecioVenta" id="inputPrecioFinal"
+                                       class="form-control form-control-lg border-primary" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-terracota w-100 shadow">
+                                    <i class="fas fa-save me-2"></i>Guardar y Publicar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script>
+                let index = 0;
+
+                const opcionesInsumos = `
+                <option value="">-- Seleccionar --</option>
+                @if (Model.InsumosDisponibles != null)
+                {
+                    @foreach (var insumo in Model.InsumosDisponibles)
+                    {
+                        <option value="@insumo.InsumoId" data-precio="@insumo.PrecioCompra">@insumo.Nombre (@insumo.UnidadMedida)</option>
+                    }
+                }
+                `;
+
+                function agregarFila() {
+                // CAMBIO 2: Aseguramos que los nombres coincidan con la lista 'Detalles' del ViewModel
+                const html = `
+                <tr class="fila-receta">
+                <td>
+                <select name="Detalles[${index}].InsumoId" class="form-select rounded-pill select-insumo" required onchange="actualizarPrecio(this)">
+                ${opcionesInsumos}
+                </select>
+                </td>
+                <td>
+                <div class="input-group input-group-sm">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control val-costo-unit" readonly value="0.00">
+                </div>
+                </td>
+                <td>
+                <input type="number" step="0.01" name="Detalles[${index}].Cantidad" class="form-control form-control-sm rounded-pill val-cantidad" value="1" oninput="calcularTodo()">
+                </td>
+                <td>
+                <span class="fw-bold text-dark">$ <span class="val-subtotal">0.00</span></span>
+                </td>
+                <td>
+                <button type="button" class="btn btn-link text-danger" onclick="$(this).closest('tr').remove(); renumerarIndices(); calcularTodo();">
+                <i class="fas fa-trash"></i>
+                </button>
+                </td>
+                </tr>
+                `;
+                $("#filasContenedor").append(html);
+                index++;
+                }
+
+                // CAMBIO 3: Función para que los índices [0], [1], [2] no se rompan si borras una fila intermedia
+                function renumerarIndices() {
+                index = 0; // Reiniciamos el contador global
+                $(".fila-receta").each(function () {
+                // Buscamos los elementos dentro de la fila actual y actualizamos el atributo 'name'
+                $(this).find(".select-insumo").attr("name", `Detalles[${index}].InsumoId`);
+                $(this).find(".val-cantidad").attr("name", `Detalles[${index}].Cantidad`);
+                index++; // Incrementamos para la siguiente fila
+                });
+                }
+
+                function actualizarPrecio(select) {
+                const precio = $(select).find(':selected').data('precio') || 0;
+                $(select).closest('tr').find('.val-costo-unit').val(precio);
+                calcularTodo();
+                }
+
+                function calcularTodo() {
+                let costoTotal = 0;
+
+                $(".fila-receta").each(function () {
+                const precioU = parseFloat($(this).find(".val-costo-unit").val()) || 0;
+                const cant = parseFloat($(this).find(".val-cantidad").val()) || 0;
+                const subtotal = precioU * cant;
+
+                $(this).find(".val-subtotal").text(subtotal.toFixed(2));
+                costoTotal += subtotal;
+                });
+
+                $("#spanCostoTotal").text(costoTotal.toFixed(2));
+                $("#hiddenCostoTotal").val(costoTotal.toFixed(2)); // <-- Enviar costo al ViewModel
+
+                const margenPct = parseFloat($("#inputMargen").val()) / 100;
+                const sugerido = costoTotal + (costoTotal * margenPct);
+
+                $("#spanPrecioSugerido").text(sugerido.toFixed(2));
+
+                if ($("#inputPrecioFinal").val() == "" || $("#inputPrecioFinal").data("auto")) {
+                $("#inputPrecioFinal").val(sugerido.toFixed(2)).data("auto", true);
+                }
+                }
+
+                $(document).ready(function () {
+                agregarFila();
+                });
+            </script>
+        </body>
+
+    </html>
